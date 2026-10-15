@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>第2课 自然语言描述算法｜动作体验增强版</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--ink:#243247;--muted:#6b7890;--line:#dbe3ee;
+  --accent:#2f6fdf;--accent2:#6b8ff5;--accent-soft:#eaf2ff;
+  --good:#247a52;--good-soft:#e9f7ef;--warn:#a7630e;--warn-soft:#fff5e3;
+  --bad:#b64747;--bad-soft:#fff0f0;--shadow:0 10px 30px rgba(40,58,85,.08);--r:18px;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;color:var(--ink);background:linear-gradient(180deg,#eef5ff 0,#f7f9fc 230px,#f4f7fb 100%)}
+button,input,textarea{font:inherit} button{cursor:pointer}
+.app{max-width:1460px;margin:0 auto;padding:18px 22px 44px}
+.topbar{background:rgba(255,255,255,.95);border:1px solid rgba(214,225,240,.9);border-radius:22px;box-shadow:var(--shadow);padding:16px 18px 14px;position:sticky;top:10px;z-index:20;backdrop-filter:blur(10px)}
+.topline{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.eyebrow{font-size:13px;color:var(--accent);font-weight:800;letter-spacing:.04em;margin-bottom:4px}h1{font-size:26px;line-height:1.25;margin:0 0 6px}.challenge{margin:0;color:var(--muted);font-size:15px}.top-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{border:none;border-radius:12px;padding:10px 15px;font-weight:800;transition:.15s}.btn:hover{transform:translateY(-1px)}.btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 14px rgba(47,111,223,.22)}.btn.secondary{background:#eef3f9;color:var(--ink)}.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}.btn.good{background:var(--good);color:#fff}.btn.warn{background:var(--warn-soft);color:#81510f;border:1px solid #eed3a1}.btn.danger{background:#fff1f1;color:var(--bad);border:1px solid #efc8c8}.btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+.progress{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:14px}.pstep{border:1px solid var(--line);background:#f9fbfd;color:#78869b;padding:8px 6px;border-radius:12px;text-align:center;font-size:13px;font-weight:800;white-space:nowrap}.pstep.active{background:var(--accent-soft);border-color:#a9c5fa;color:var(--accent)}.pstep.done{background:var(--good-soft);border-color:#b8e4cb;color:var(--good)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;margin-top:18px}.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px;margin-bottom:16px}.panel h2{font-size:22px;margin:0 0 8px}.panel h3{font-size:17px;margin:0 0 8px}.lead{font-size:16px;line-height:1.75;color:#46566d;margin:6px 0 16px}.hint{font-size:13px;color:var(--muted);line-height:1.65}.task-badge{display:inline-flex;padding:6px 10px;background:var(--accent-soft);color:var(--accent);font-weight:800;border-radius:999px;font-size:13px;margin-bottom:10px}
+.side .panel{padding:18px;position:sticky;top:188px}.status-list{display:grid;gap:9px}.status-item{display:flex;gap:9px;font-size:14px;color:#64748b;padding:9px 10px;border-radius:12px;background:#f8fafc;border:1px solid #eef2f7}.status-item.done{color:var(--good);background:var(--good-soft);border-color:#cfeada}.dot{width:19px;height:19px;display:grid;place-items:center;border-radius:50%;background:#e4eaf2;color:#7a8799;font-size:12px;font-weight:900;flex:0 0 19px}.status-item.done .dot{background:var(--good);color:#fff}.archive-card{margin-top:13px;padding:12px;background:#f3f7fe;border:1px solid #dce8fa;border-radius:14px;font-size:14px;line-height:1.7}.archive-card b{color:var(--accent)}
+.note{padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:#f8fafc;line-height:1.7}.note.good{background:var(--good-soft);border-color:#c7e5d2;color:#245e44}.note.warn{background:var(--warn-soft);border-color:#eed7ae;color:#7c551c}.note.bad{background:var(--bad-soft);border-color:#efc8c8;color:#8b3e3e}.step-chain{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.chip{padding:8px 11px;border-radius:999px;background:#f3f6fa;border:1px solid #dfe6ef;font-size:14px;font-weight:700}.arrow{color:#91a0b4;font-weight:900}
+/* 操作台 */
+.lab-grid{display:grid;grid-template-columns:minmax(560px,1.35fr) minmax(320px,.65fr);gap:18px}.workbench{position:relative;min-height:520px;border:1px solid #d9e3ef;border-radius:18px;background:linear-gradient(180deg,#f8fcff,#eef6ff);overflow:hidden}.bench-title{position:absolute;left:18px;top:14px;font-weight:800;color:#4c617a}.bench-surface{position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(180deg,#eadcc8,#dfccb1);border-top:1px solid #cfbaa0}
+.zone{position:absolute;border:2px dashed #c4d1e2;border-radius:18px;background:rgba(255,255,255,.76);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#5b6d84;font-weight:800;transition:.15s}.zone small{display:block;font-size:12px;color:#8c99aa;font-weight:600;margin-top:4px}.zone.over{border-color:var(--accent);background:#edf5ff;box-shadow:0 0 0 4px rgba(47,111,223,.08)}
+#sinkZone{left:24px;top:80px;width:180px;height:150px}#boardZone{left:230px;top:80px;width:190px;height:150px}#cupZone{right:35px;top:80px;width:190px;height:220px}
+.sink-icon{font-size:52px}.board-icon{font-size:52px}.cup-visual{width:100px;height:130px;border:5px solid #7388a3;border-top-width:3px;border-radius:8px 8px 24px 24px;position:relative;background:rgba(255,255,255,.45);overflow:hidden}.water-fill{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(86,180,244,.45);transition:.6s}.fruit-in-cup{position:absolute;left:8px;right:8px;bottom:13px;display:flex;justify-content:center;align-items:flex-end;gap:2px;flex-wrap:wrap;z-index:2}.fruit-token,.kettle-token{position:absolute;display:flex;align-items:center;justify-content:center;border-radius:16px;background:#fff;border:1px solid #d8e0ea;box-shadow:0 8px 20px rgba(45,64,90,.12);user-select:none;cursor:grab;transition:transform .15s,opacity .2s}.fruit-token{left:55px;bottom:44px;width:110px;height:78px;font-size:35px;flex-direction:column;gap:2px}.fruit-token small{font-size:11px;color:#6c7a90;font-weight:800}.kettle-token{left:245px;bottom:42px;width:110px;height:70px;font-size:42px}.fruit-token.done,.kettle-token.done{opacity:.35;cursor:default}.action-buttons{position:absolute;right:24px;bottom:30px;display:grid;gap:9px;width:180px}.action-buttons .btn{width:100%}.timer-box{position:absolute;left:24px;top:260px;width:180px;padding:12px;border-radius:14px;background:rgba(255,255,255,.94);border:1px solid #dce5ef;text-align:center;box-shadow:0 5px 15px rgba(45,64,90,.08)}.timer-num{font-size:28px;font-weight:900;color:var(--accent);font-variant-numeric:tabular-nums}.timer-bar{height:8px;background:#e7edf5;border-radius:99px;overflow:hidden;margin-top:7px}.timer-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#7aa0ff);transition:.2s}
+/* 清洗与切片过程可视化 */
+.process-layer{position:absolute;inset:7px;border-radius:13px;background:rgba(255,255,255,.96);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:6;overflow:hidden}.process-layer.active{display:flex}.process-caption{position:absolute;left:0;right:0;bottom:7px;text-align:center;font-size:12px;font-weight:900;color:#4b6079}.wash-fruit{font-size:36px;z-index:2;animation:washFruit 1.1s ease-in-out infinite}.water-drops{position:absolute;inset:0;pointer-events:none}.water-drops span{position:absolute;top:-18px;font-size:22px;animation:dropWater .75s linear infinite}.water-drops span:nth-child(1){left:28%;animation-delay:.05s}.water-drops span:nth-child(2){left:46%;animation-delay:.25s}.water-drops span:nth-child(3){left:63%;animation-delay:.45s}.water-drops span:nth-child(4){left:75%;animation-delay:.12s}@keyframes dropWater{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(105px);opacity:.15}}@keyframes washFruit{0%,100%{transform:rotate(-3deg) scale(1)}50%{transform:rotate(3deg) scale(1.05)}}
+.cut-stage{position:relative;width:130px;height:92px;display:flex;align-items:center;justify-content:center}.cut-whole{font-size:38px;transition:.25s}.knife-anim{position:absolute;font-size:34px;right:12px;top:4px;transform-origin:80% 80%;animation:chopKnife .48s ease-in-out 3}.cut-layer.sliced .cut-whole{opacity:0;transform:scale(.75)}.cut-layer .cut-slices{position:absolute;opacity:0;transform:scale(.8);transition:.25s}.cut-layer.sliced .cut-slices{opacity:1;transform:scale(1)}@keyframes chopKnife{0%,100%{transform:rotate(-18deg) translateY(0)}50%{transform:rotate(20deg) translate(-20px,34px)}}
+.fruit-slices{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap}.fruit-slice{width:25px;height:17px;border-radius:50%;border:2px solid rgba(91,75,38,.35);box-shadow:inset 0 0 0 3px rgba(255,255,255,.35);position:relative}.fruit-slice::after{content:"";position:absolute;left:50%;top:2px;bottom:2px;width:1px;background:rgba(255,255,255,.72);transform:translateX(-50%)}.fruit-slice.orange{background:radial-gradient(circle,#fff3d6 0 22%,#ffb13b 24% 72%,#f08b23 74%)}.fruit-slice.lemon{background:radial-gradient(circle,#fffde4 0 22%,#f5e56b 24% 72%,#d9c83c 74%)}.fruit-slices.cup .fruit-slice{width:21px;height:14px}.fruit-slices.token .fruit-slice{width:24px;height:16px}
+.logbox{border:1px solid #dce4ef;border-radius:16px;background:#fbfcfe;padding:15px}.log-list{display:grid;gap:7px;margin-top:10px;max-height:300px;overflow:auto}.log-item{display:flex;gap:9px;align-items:flex-start;padding:9px 10px;border-radius:10px;background:#fff;border:1px solid #e5eaf1}.log-item strong{width:25px;height:25px;border-radius:8px;background:#edf2f8;display:grid;place-items:center;color:#6e7c90;flex:0 0 25px}.log-item.good strong{background:var(--good);color:#fff}.log-item.bad{background:var(--bad-soft);border-color:#efc8c8}.log-item.bad strong{background:var(--bad);color:#fff}
+/* 回放排序 */
+.review-grid{display:grid;grid-template-columns:minmax(300px,.8fr) minmax(430px,1.2fr);gap:18px}.memory-card{border:1px solid #dce4ef;border-radius:16px;background:#fbfcfe;padding:16px}.timeline{display:grid;gap:8px}.timeline-item{padding:10px 12px;border-radius:11px;background:#fff;border:1px solid #e3e9f1;display:flex;gap:9px;align-items:center}.timeline-item .n{width:28px;height:28px;border-radius:8px;background:#edf2f8;display:grid;place-items:center;font-weight:800}.sort-zone{min-height:330px;border:1px dashed #cbd7e6;border-radius:16px;background:#f9fbfd;padding:14px}.sort-list{display:grid;gap:8px}.sort-card{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:10px;border-radius:12px;background:#fff;border:1px solid #dce4ef}.sort-card .num{width:30px;height:30px;border-radius:8px;background:#edf2f8;display:grid;place-items:center;font-weight:900}.mini{border:1px solid #d7e0ec;background:#fff;color:#506078;border-radius:8px;padding:6px 9px;font-weight:800;font-size:12px}.mini:disabled{opacity:.3;cursor:not-allowed}
+/* 自然语言编辑 */
+.editor-list{display:grid;gap:12px}.edit-card{border:1px solid #dce4ef;border-radius:16px;padding:14px;background:#fbfcfe}.edit-card.highlight{box-shadow:0 0 0 3px rgba(47,111,223,.13);border-color:#9dbaf0}.edit-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.edit-head .left{display:flex;align-items:center;gap:9px}.num{width:32px;height:32px;border-radius:9px;background:#edf2f8;display:grid;place-items:center;font-weight:900;color:#6d7b90}.base-tag{font-size:13px;padding:5px 8px;background:#eef5ff;color:#2d63bc;border-radius:999px;font-weight:800}.choices{display:flex;flex-wrap:wrap;gap:8px}.choice{border:1px solid #d5deea;background:#fff;border-radius:11px;padding:9px 11px;text-align:left;color:#43536a}.choice:hover{border-color:#9ebaf0;background:#f5f8ff}.choice.sel{border-color:#8db0ef;background:var(--accent-soft);color:#2458ab;font-weight:800}.choice.vague::after{content:""}.custom-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}.custom-row input{width:100%;border:1px solid #cfd9e7;border-radius:11px;padding:10px 11px;outline:none}.custom-row input:focus{border-color:#8db2f1;box-shadow:0 0 0 3px rgba(47,111,223,.09)}.prediction-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}.pred-btn{border:1px solid #d8e1ec;background:#fff;border-radius:999px;padding:7px 10px;color:#58697e}.pred-btn.sel{background:#eef5ff;border-color:#a9c4f5;color:#2d63bc;font-weight:800}.final-sentence{margin-top:10px;padding:10px 12px;border-radius:11px;background:#fff;border:1px solid #e1e7ef;line-height:1.65}.final-sentence.empty{color:#9aa7b9;border-style:dashed}.editor-actions,.run-controls,.summary-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+/* 盲执行 */
+.run-grid{display:grid;grid-template-columns:minmax(350px,.85fr) minmax(520px,1.15fr);gap:18px}.run-list{display:grid;gap:7px}.run-line{padding:10px 12px;border-radius:10px;background:#f5f7fa;border:1px solid transparent;display:flex;gap:9px;color:#66758a}.run-line.current{background:var(--accent-soft);border-color:#b5ccf5;color:var(--accent);font-weight:800}.run-line.done{background:var(--good-soft);border-color:#cde8d7;color:var(--good)}.run-line.failed{background:var(--bad-soft);border-color:#efc8c8;color:var(--bad);font-weight:800}.assistant-stage{border:1px solid #dce5ef;border-radius:18px;background:linear-gradient(180deg,#f8fbff,#f2f7fc);padding:16px;min-height:420px}.assistant-top{display:flex;align-items:center;gap:12px}.assistant-face{font-size:48px}.bubble{padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #d9e4f1;line-height:1.7;flex:1}.mini-workbench{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.mini-zone{min-height:92px;border:1px solid #dce4ef;background:#fff;border-radius:14px;padding:10px;text-align:center}.mini-zone strong{display:block;margin-top:4px}.mini-cup{height:70px;width:58px;border:4px solid #7489a4;border-top-width:2px;border-radius:5px 5px 14px 14px;margin:4px auto;position:relative;overflow:hidden}.mini-water{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(83,177,240,.4)}.mini-fruit{position:absolute;left:4px;right:4px;bottom:7px;font-size:18px;z-index:2}.state-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.state-item{padding:10px;border-radius:11px;background:#fff;border:1px solid #e4e9f0}.state-item small{display:block;color:#7a8799;margin-bottom:3px}.state-item strong{font-size:14px}
+/* 第一次盲执行：原因判断 */
+.diag-judge{margin-top:14px;padding:14px;border:1px solid #dce4ef;border-radius:14px;background:#fff}
+.diag-judge h4{margin:0 0 10px;font-size:15px;color:#42536a}
+.diag-choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.diag-choice{border:1px solid #d8e1eb;border-radius:11px;background:#fff;padding:10px 8px;font-weight:800;color:#52637a}
+.diag-choice:hover{border-color:#9dbaf0;background:#f7faff}
+.diag-choice.sel{background:var(--accent-soft);border-color:#9dbaf0;color:var(--accent)}
+.diag-choice.correct{background:var(--good-soft);border-color:#bce0ca;color:var(--good)}
+.diag-submit{margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.issue-type{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eef3f9;color:#52637a;font-weight:800;font-size:12px;margin-right:6px}
+@media(max-width:720px){.diag-choices{grid-template-columns:1fr}}
+/* 诊所 */
+.clinic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.clinic-card{border:1px solid #dce4ef;border-radius:16px;padding:15px;background:#fbfcfe}.clinic-card h3{font-size:16px}.clinic-bad{padding:10px 12px;border-radius:11px;background:var(--warn-soft);border:1px solid #eed7ae;margin:10px 0;font-weight:800}.clinic-options{display:grid;gap:7px}.clinic-opt{border:1px solid #d8e1eb;border-radius:10px;background:#fff;padding:9px;text-align:left}.clinic-opt.sel.good{background:var(--good-soft);border-color:#bce0ca;color:var(--good)}.clinic-opt.sel.bad{background:var(--bad-soft);border-color:#efc8c8;color:var(--bad)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.algo-card{border:1px solid var(--line);border-radius:16px;padding:15px;background:#fbfcfe}.algo-line{padding:9px 10px;border-radius:10px;background:#fff;border:1px solid #e4e9f0;margin-bottom:7px}.algo-line.diff{background:#fff7e8;border-color:#f2d7a6}.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.check-card{padding:15px;border:1px solid #dce4ef;border-radius:14px;background:#fbfcfe}.check-card.ok{background:var(--good-soft);border-color:#c6e5d1}.check-card h3{font-size:16px}.mark{font-size:20px;margin-right:5px}
+.summary-card{border:1px solid #cfdced;border-radius:18px;background:#fff;padding:22px;box-shadow:0 12px 32px rgba(37,58,88,.09)}.summary-head{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid #e3e9f1;padding-bottom:14px;margin-bottom:14px}.summary-head h2{margin:0}.version{padding:6px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:13px}.summary-section{margin:14px 0}.summary-section h3{font-size:15px;margin:0 0 7px;color:#4d5f77}.reflection{background:#f7fbff;border:1px solid #dbe8f6;border-radius:13px;padding:13px;line-height:1.8;white-space:pre-wrap}.phrase-builder{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.phrase-btn{border:1px solid #d9e2ed;background:#fff;border-radius:999px;padding:8px 11px;color:#52637a}.phrase-btn.sel{background:var(--accent-soft);border-color:#9dbaf0;color:var(--accent);font-weight:800}
+.modal-backdrop{position:fixed;inset:0;background:rgba(22,30,44,.42);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}.modal-backdrop.show{display:flex}.modal{max-width:760px;width:100%;background:#fff;border-radius:20px;border:1px solid var(--line);box-shadow:0 20px 60px rgba(20,30,50,.25);padding:20px}.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.jump-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(30px);background:#203047;color:#fff;padding:10px 15px;border-radius:12px;opacity:0;pointer-events:none;transition:.2s;z-index:70;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.18)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}.side .panel{position:static}.lab-grid,.review-grid,.run-grid{grid-template-columns:1fr}.clinic-grid{grid-template-columns:1fr}.side{order:-1}.workbench{min-height:560px}}
+@media(max-width:720px){.app{padding:10px}.topline{display:grid}.top-actions{justify-content:flex-start}.progress{grid-template-columns:repeat(3,1fr)}.panel{padding:16px}.compare,.checks{grid-template-columns:1fr}.state-grid{grid-template-columns:1fr 1fr}.custom-row{grid-template-columns:1fr}.workbench{min-height:650px}#sinkZone{left:12px;top:70px;width:145px;height:125px}#boardZone{left:170px;top:70px;width:150px;height:125px}#cupZone{right:12px;top:210px;width:155px;height:205px}.fruit-token{left:30px}.kettle-token{left:165px}.timer-box{left:20px;right:auto;bottom:150px}.action-buttons{right:18px}}
+@media print{body{background:#fff}.topbar,.side,.no-print,.panel:not(.print-panel){display:none!important}.app,.layout,.main{display:block!important;max-width:none;margin:0;padding:0}.print-panel{border:none;box-shadow:none;margin:0;padding:0}.summary-card{box-shadow:none;border:1px solid #aaa}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topline">
+      <div>
+        <div class="eyebrow">五年级上册 · 第一单元「算法与算法表示」</div>
+        <h1>第2课 自然语言描述算法</h1>
+        <p class="challenge">主挑战：怎样让一个从没做过水果茶的人，只看你的文字也能完成？</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn ghost" id="teacherBtn">⚙ 教师模式</button>
+      </div>
+    </div>
+    <div class="progress" id="progress"></div>
+  </header>
+  <div class="layout">
+    <main class="main" id="main"></main>
+    <aside class="side">
+      <section class="panel">
+        <h3 style="margin-bottom:12px">我的学习档案</h3>
+        <div class="status-list" id="statusList"></div>
+        <div class="archive-card">当前成果：<b>水果茶算法2.0</b><br><span class="hint">今天不是重新想步骤，而是把已经会做的过程说得让别人能照着执行。</span></div>
+      </section>
+    </aside>
+  </div>
+</div>
+<div class="modal-backdrop" id="teacherModal"><div class="modal"><div class="modal-head"><h2>教师模式</h2><button class="btn ghost" id="closeTeacher">关闭</button></div><div class="jump-grid" id="jumpGrid"></div><div style="height:12px"></div><button class="btn warn" id="resetBtn" style="width:100%">重置本课学习过程</button></div></div>
+<div class="toast" id="toast"></div>
+<script>
+(()=>{
+'use strict';
+const META={clean:{label:'清洗水果',emoji:'🫧'},slice:{label:'切片',emoji:'🔪'},put:{label:'放入杯中',emoji:'🥝'},water:{label:'加水',emoji:'💧'},soak:{label:'浸泡',emoji:'⏳'},finish:{label:'完成',emoji:'🍹'}};
+const KEYS=['clean','slice','put','water','soak','finish'];
+const STAGES=['亲手做一遍','回看动作','第一次盲执行','表达诊所','把动作说清楚','重新盲执行','算法2.0'];
+const ARCH=['我亲手完成了一次水果茶','我把动作整理成步骤','我发现了盲执行中的表达问题','我通过了表达诊所','我重新把动作说清楚','我让小助手重新验证通过'];
+const OPTIONS={
+ clean:[{text:'把水果处理一下',vague:true},{text:'把水果洗一洗',ok:true},{text:'将水果清洗干净',ok:true}],
+ slice:[{text:'把水果弄成小块',vague:true},{text:'把清洗好的水果切成片',ok:true},{text:'将水果切成薄片',ok:true}],
+ put:[{text:'把它放进去',vague:true},{text:'把切好的水果放入杯中',ok:true},{text:'将水果片放进准备好的杯子里',ok:true}],
+ water:[{text:'加一点水',vague:true},{text:'往杯中加入一杯水',ok:true},{text:'加水至水果基本浸没',ok:true}],
+ soak:[{text:'泡一会儿',vague:true},{text:'浸泡3分钟',ok:true},{text:'让水果在水中浸泡几分钟',ok:true}],
+ finish:[{text:'差不多就弄好了',vague:true},{text:'浸泡结束后，水果茶制作完成',ok:true},{text:'完成浸泡后，即可饮用',ok:true}]
+};
+const DEFAULT_ORDER=['clean','slice','put','water','soak','finish'];
+const DIAG=[
+ {key:'clean',text:'把水果处理一下。',ok:false,type:'表达不明确',ask:'“处理一下”到底是清洗、切片，还是两件事都要做？我没法只靠这句话确定。',hint:'再看小助手的问题：它卡住，是因为不知道先后位置，还是因为根本不知道“处理一下”具体要做什么？'},
+ {key:'put',text:'把水果放进杯中。',ok:false,type:'步骤不完整',ask:'我还没看到“清洗”和“切片”的清楚说明。是不是有关键动作没有写出来？',hint:'回到刚才亲手做水果茶的动作：从完整水果到放进杯中，中间有没有重要步骤没有被写出来？'},
+ {key:'slice',text:'把水果切成片。',ok:false,type:'顺序不清楚',ask:'前一句已经让我把水果放进杯中了，现在才让我切片。我应该先放还是先切？',hint:'这里的动作并不是完全没写，而是出现的位置让执行者矛盾。再想想问题更像“缺了什么”，还是“先后摆错了”。'},
+ {key:'water',text:'加一点水。',ok:false,type:'表达不明确',ask:'“一点”到底加到哪里停止？我需要一个能判断“做到位”的标准。',hint:'小助手知道要“加水”，但不知道什么时候停。问题在于步骤缺失、顺序，还是说法本身不够具体？'},
+ {key:'soak',text:'泡一会儿。',ok:false,type:'表达不明确',ask:'“一会儿”什么时候结束？10秒、1分钟还是3分钟？',hint:'小助手知道要浸泡，却不知道何时结束。再判断：它缺的是一个动作，还是一个清楚的表达标准？'},
+ {key:'finish',text:'浸泡结束后，水果茶制作完成。',ok:true,type:'',ask:'这句话告诉了我什么时候可以宣布完成。',hint:''}
+];
+const CLINIC=[
+ {id:'c1',bad:'把水果处理一下。',q:'哪一种改法更容易让陌生执行者知道“具体做什么”？',opts:['把水果弄好。','将水果清洗干净，再切成片。','把水果看一看。'],ans:[1],good:'这句话把具体动作说出来了，执行者不用猜“处理”是什么意思。',badfb:'再想一想：你选的说法里，执行者能不能直接知道要做哪些动作？'},
+ {id:'c2',bad:'加一点水。',q:'哪些说法能让执行者知道“加到什么程度”？（可能不止一个）',opts:['往杯中加入一杯水。','加水至水果基本浸没。','想加多少就加多少。'],ans:[0,1],good:'两种表达虽然不一样，但都给了执行者可以判断“什么时候停止加水”的依据。',badfb:'这里不只有一种合理表达。再比较：哪些说法能让执行者判断“什么时候停止”？'},
+ {id:'c3',bad:'泡一会儿。',q:'哪一种说法让执行者更容易判断“什么时候结束”？',opts:['浸泡3分钟。','等等看。','差不多就行。'],ans:[0],good:'有了明确的结束条件，执行者就知道什么时候进入下一步。',badfb:'再想一想：如果只看到你选的这句话，执行者知道什么时候可以结束浸泡吗？'}
+];
+const STORAGE='g5_l2_natural_language_action_v3';
+const fresh=()=>({
+ stage:1,archive:[false,false,false,false,false,false],actionLog:[],actionSuccess:false,
+ reviewOrder:DEFAULT_ORDER.slice(),
+ diagIndex:0,diagSeen:[],diagnosticDone:false,diagPending:null,diagSelected:'',diagJudged:[],diagJudgeFeedback:'',diagJudgeFeedbackKind:'',
+ clinic:{c1:[],c2:[],c3:[]},clinicChecked:{c1:false,c2:false,c3:false},clinicPassed:{c1:false,c2:false,c3:false},clinicDone:false,
+ sentences:{clean:'',slice:'',put:'',water:'',soak:'',finish:''},pred:{},firstDraft:null,
+ runCount:0,questionCount:0,repairCount:0,lastFailKey:'',reflection:[],completed:false
+});
+let state=load();let dragged=null;let work=null;let blind=null;let soakTimer=null;
+const main=document.getElementById('main'),progress=document.getElementById('progress'),statusList=document.getElementById('statusList'),toastEl=document.getElementById('toast');
+function load(){try{const r=localStorage.getItem(STORAGE);return r?Object.assign(fresh(),JSON.parse(r)):fresh()}catch(e){return fresh()}}
+function save(){try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){}}
+function esc(s=''){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function toast(t){toastEl.textContent=t;toastEl.classList.add('show');setTimeout(()=>toastEl.classList.remove('show'),1600)}
+function setStage(n){state.stage=Math.max(1,Math.min(7,n));save();renderAll();window.scrollTo({top:0,behavior:'smooth'})}
+function renderAll(){renderProgress();renderArchive();renderStage()}
+function renderProgress(){progress.innerHTML='';STAGES.forEach((s,i)=>{const n=i+1,d=document.createElement('div');d.className='pstep '+(n<state.stage?'done':n===state.stage?'active':'');d.textContent=(n<state.stage?'✓ ':'')+s;progress.appendChild(d)})}
+function renderArchive(){statusList.innerHTML='';ARCH.forEach((t,i)=>{const d=document.createElement('div');d.className='status-item '+(state.archive[i]?'done':'');d.innerHTML=`<span class="dot">${state.archive[i]?'✓':i+1}</span><span>${t}</span>`;statusList.appendChild(d)})}
+function renderStage(){if(state.stage===1)s1();else if(state.stage===2)s2();else if(state.stage===3)s3();else if(state.stage===4)s4();else if(state.stage===5)s5();else if(state.stage===6)s6();else s7()}
+function chain(order){return `<div class="step-chain">${order.map((k,i)=>`${i?'<span class="arrow">→</span>':''}<span class="chip">${META[k].emoji} ${META[k].label}</span>`).join('')}</div>`}
+
+/* Stage 1 */
+function resetWork(){work={clean:false,slice:false,put:false,water:false,soak:false,finish:false,log:[],timer:0,animating:false};clearInterval(soakTimer)}
+function s1(){if(!work)resetWork();main.innerHTML=`<section class="panel"><div class="task-badge">阶段1 · 先做一遍</div><h2>先别急着写，亲手做一杯水果茶</h2><p class="lead">把水果拖到合适的位置，完成清洗、切片、放入杯中、加水、浸泡和完成。你做过的每个动作，稍后都会变成自然语言算法中的一句话。</p><div class="lab-grid"><div class="workbench" id="workbench"><div class="bench-title">水果茶制作台</div><div class="zone" id="sinkZone" data-zone="sink"><div class="sink-icon">🚰</div>清洗区<small>把水果拖到这里</small><div class="process-layer wash-layer" id="washLayer"><div class="water-drops"><span>💧</span><span>💧</span><span>💧</span><span>💧</span></div><div class="wash-fruit">🍊🍋</div><div class="process-caption">正在冲洗水果……</div></div></div><div class="zone" id="boardZone" data-zone="board"><div class="board-icon">🔪</div>切片区<small>洗好的水果才能切</small><div class="process-layer cut-layer" id="cutLayer"><div class="cut-stage"><div class="cut-whole">🍊🍋</div><div class="knife-anim">🔪</div><div class="cut-slices" id="cutSlices"></div></div><div class="process-caption" id="cutCaption">正在把水果切成片……</div></div></div><div class="zone" id="cupZone" data-zone="cup"><div class="cup-visual"><div class="water-fill" id="waterFill"></div><div class="fruit-in-cup" id="fruitInCup"></div></div><div style="margin-top:6px">玻璃杯</div><small>把切好的水果放入杯中</small></div><div class="bench-surface"></div><div class="fruit-token" id="fruitToken" draggable="true" title="拖动水果"><div id="fruitMain">🍊🍋</div><small id="fruitState">完整水果</small></div><div class="kettle-token" id="kettleToken" draggable="true" title="拖到玻璃杯加水">🫖</div><div class="timer-box"><div class="hint">模拟浸泡</div><div class="timer-num" id="timerNum">0:00</div><div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div></div><div class="action-buttons"><button class="btn secondary" id="soakBtn">⏳ 开始浸泡</button><button class="btn primary" id="finishBtn">🍹 我觉得完成了</button><button class="btn ghost" id="resetWorkBtn">↺ 重新做一遍</button></div></div><div class="logbox"><h3>我的动作记录</h3><p class="hint">页面只记录你真正完成的动作。做错了也会记录，稍后可以回看为什么会卡住。</p><div class="log-list" id="actionLog"></div><div class="note" id="workFeedback" style="margin-top:12px">先把水果拖到清洗区。</div></div></div><div class="editor-actions"><button class="btn primary" id="toReview" ${work.finish?'':'disabled'}>完成制作，回看动作</button></div></section>`;bindWork();renderWork()}
+function bindWork(){const fruit=document.getElementById('fruitToken'),kettle=document.getElementById('kettleToken');fruit.addEventListener('dragstart',e=>{if(work.animating||work.put){e.preventDefault();return}dragged='fruit'});kettle.addEventListener('dragstart',e=>{if(work.animating||work.water){e.preventDefault();return}dragged='kettle'});document.querySelectorAll('.zone').forEach(z=>{z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('over')});z.addEventListener('dragleave',()=>z.classList.remove('over'));z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('over');dropOn(z.dataset.zone)})});fruit.onclick=()=>toast(work.slice?'现在拖动的是“切好的水果片”。':'把水果拖到“清洗区”“切片区”或“玻璃杯”。');kettle.onclick=()=>{if(work.put)doWater();else feedback('先想一想：杯中还没有准备好水果，现在就加水合适吗？','bad')};document.getElementById('soakBtn').onclick=startSoak;document.getElementById('finishBtn').onclick=doFinish;document.getElementById('resetWorkBtn').onclick=()=>{resetWork();s1()};document.getElementById('toReview').onclick=()=>{state.actionLog=work.log.slice();state.actionSuccess=true;state.archive[0]=true;save();setStage(2)}}
+function dropOn(zone){const item=dragged;dragged=null;if(work.animating){feedback('当前动作还没有完成，请等动画结束后再进行下一步。','warn');return}if(item==='fruit'){if(zone==='sink')doClean();else if(zone==='board')doSlice();else if(zone==='cup')doPut()}else if(item==='kettle'&&zone==='cup')doWater()}
+function addLog(text,ok=true){work.log.push({text,ok});renderWork()}
+function feedback(t,kind=''){const el=document.getElementById('workFeedback');if(!el)return;el.className='note '+kind;el.innerHTML=t}
+function sliceMarkup(cls=''){return `<div class="fruit-slices ${cls}"><span class="fruit-slice orange"></span><span class="fruit-slice lemon"></span><span class="fruit-slice orange"></span><span class="fruit-slice lemon"></span></div>`}
+function doClean(){if(work.clean){feedback('水果已经清洗过了，可以继续下一步。','warn');return}const w=work,layer=document.getElementById('washLayer');work.animating=true;if(layer)layer.classList.add('active');feedback('正在清洗水果：观察水流冲过水果的过程。','warn');setTimeout(()=>{if(work!==w)return;work.animating=false;work.clean=true;if(layer)layer.classList.remove('active');addLog('清洗水果');feedback('水果已经洗干净。你可以看到水果状态已经变成“已清洗”。接下来还需要怎样处理？','good')},1500)}
+function doSlice(){if(!work.clean){addLog('尝试切未清洗的水果',false);feedback('现在水果还没有清洗。真正制作时，你愿意先切再洗吗？请先完成清洗。','bad');return}if(work.slice){feedback('水果已经切成水果片了。','warn');return}const w=work,layer=document.getElementById('cutLayer'),slices=document.getElementById('cutSlices'),caption=document.getElementById('cutCaption');work.animating=true;if(slices)slices.innerHTML=sliceMarkup();if(layer){layer.classList.remove('sliced');layer.classList.add('active')}if(caption)caption.textContent='正在把水果切成片……';feedback('正在切片：观察完整水果怎样变成水果片。','warn');setTimeout(()=>{if(work!==w)return;if(layer)layer.classList.add('sliced');if(caption)caption.textContent='切片完成：现在是水果片';},900);setTimeout(()=>{if(work!==w)return;work.animating=false;work.slice=true;if(layer){layer.classList.remove('active','sliced')}addLog('把清洗好的水果切成片');feedback('切片完成。下方水果卡现在已经变成“水果片”，接下来可以把水果片放进杯中。','good')},1650)}
+function doPut(){if(!work.slice){addLog('尝试把未切片的水果放进杯中',false);feedback('水果还是完整的。先把它处理成适合水果茶的形态，再放进杯中。','bad');return}if(work.put){feedback('水果片已经在杯中了。','warn');return}work.put=true;addLog('把切好的水果放入杯中');feedback('杯中现在显示的是切好的水果片，而不是完整水果。还需要什么才能浸泡？','good')}
+function doWater(){if(!work.put){addLog('尝试在杯中没有水果时加水',false);feedback('玻璃杯里还没有水果。请先把水果准备好并放入杯中。','bad');return}if(work.water){feedback('已经加过水了。','warn');return}work.water=true;addLog('往杯中加水');feedback('水果片和水都准备好了。现在可以开始浸泡。','good')}
+function startSoak(){if(work.soak){feedback('已经完成浸泡。','warn');return}if(!work.put||!work.water){addLog('尝试提前浸泡',false);feedback('浸泡前，杯中需要同时有水果和水。检查一下还缺什么。','bad');return}let t=0;document.getElementById('soakBtn').disabled=true;feedback('开始模拟浸泡：页面用几秒钟表示真实的几分钟。','warn');soakTimer=setInterval(()=>{t++;work.timer=t;const num=document.getElementById('timerNum'),fill=document.getElementById('timerFill');if(num)num.textContent=`0:0${Math.min(t,5)}`;if(fill)fill.style.width=(Math.min(t,5)*20)+'%';if(t>=5){clearInterval(soakTimer);work.soak=true;addLog('浸泡一段时间');feedback('浸泡完成。现在你可以判断任务是否完成。','good');renderWork()}},450)}
+function doFinish(){if(!work.soak){addLog('尝试提前宣布完成',false);feedback('还没有完成浸泡。什么时候才能宣布“完成”？','bad');return}if(work.finish)return;work.finish=true;addLog('水果茶制作完成');feedback('成功！你刚才不是在“背步骤”，而是在真正执行一连串动作。','good');renderWork()}
+function renderWork(){if(!document.getElementById('actionLog'))return;const fruit=document.getElementById('fruitToken'),fruitMain=document.getElementById('fruitMain'),fruitState=document.getElementById('fruitState');fruit.classList.toggle('done',work.put);document.getElementById('kettleToken').classList.toggle('done',work.water);if(fruitMain)fruitMain.innerHTML=work.slice?sliceMarkup('token'):'🍊🍋';if(fruitState)fruitState.textContent=work.slice?'已切成水果片':work.clean?'已清洗':'完整水果';document.getElementById('fruitInCup').innerHTML=work.put?sliceMarkup('cup'):'';document.getElementById('waterFill').style.height=work.water?'72%':'0';document.getElementById('timerNum').textContent=work.soak?'0:05':`0:0${Math.min(work.timer||0,5)}`;document.getElementById('timerFill').style.width=(work.soak?100:Math.min(work.timer||0,5)*20)+'%';const log=document.getElementById('actionLog');log.innerHTML=work.log.length?work.log.map((x,i)=>`<div class="log-item ${x.ok?'good':'bad'}"><strong>${i+1}</strong><span>${esc(x.text)}</span></div>`).join(''):'<div class="hint">还没有动作记录。</div>';const go=document.getElementById('toReview');if(go)go.disabled=!work.finish}
+
+/* Stage 2 */
+function s2(){const successful=state.actionLog.filter(x=>x.ok).map(x=>x.text);main.innerHTML=`<section class="panel"><div class="task-badge">阶段2 · 回看动作</div><h2>刚才“会做”的过程，能整理成几步？</h2><p class="lead">左边是你刚才的真实动作记录。右边把主要动作整理成算法1.0的步骤骨架。请用 ↑ ↓ 调整，直到它能清楚表示制作过程。</p><div class="review-grid"><div class="memory-card"><h3>我的真实动作记录</h3><div class="timeline">${successful.map((x,i)=>`<div class="timeline-item"><span class="n">${i+1}</span><span>${esc(x)}</span></div>`).join('')}</div>${state.actionLog.some(x=>!x.ok)?'<div class="note warn" style="margin-top:12px">你还出现过尝试失败的动作。这些“卡住”的时刻，正好帮助我们看清哪些动作有先后关系。</div>':''}</div><div class="sort-zone"><h3>整理成主要步骤</h3><div class="sort-list" id="sortList"></div><div class="note" id="sortFb" style="margin-top:12px">提示：这里的任务不是重新发明做法，而是把刚才的动作整理成清楚的步骤骨架。</div></div></div><div class="editor-actions"><button class="btn secondary" id="backDo">返回再做一遍</button><button class="btn primary" id="confirmOrder">确认步骤骨架</button></div></section>`;renderSort();document.getElementById('backDo').onclick=()=>setStage(1);document.getElementById('confirmOrder').onclick=()=>{if(!sameOrder(state.reviewOrder,DEFAULT_ORDER)){const fb=document.getElementById('sortFb');fb.className='note bad';fb.innerHTML='再检查一下：清洗和切片、浸泡和完成之间的先后关系是否合理？';return}state.archive[1]=true;save();setStage(3)}}
+function renderSort(){const box=document.getElementById('sortList');box.innerHTML='';state.reviewOrder.forEach((k,i)=>{const d=document.createElement('div');d.className='sort-card';d.innerHTML=`<span class="num">${i+1}</span><span>${META[k].emoji} ${META[k].label}</span><span><button class="mini" data-up ${i===0?'disabled':''}>↑</button> <button class="mini" data-down ${i===state.reviewOrder.length-1?'disabled':''}>↓</button></span>`;d.querySelector('[data-up]').onclick=()=>moveReview(i,-1);d.querySelector('[data-down]').onclick=()=>moveReview(i,1);box.appendChild(d)})}
+function moveReview(i,dir){const j=i+dir;if(j<0||j>=state.reviewOrder.length)return;[state.reviewOrder[i],state.reviewOrder[j]]=[state.reviewOrder[j],state.reviewOrder[i]];save();renderSort()}
+function sameOrder(a,b){return a.length===b.length&&a.every((x,i)=>x===b[i])}
+
+/* Stage 3：第一次盲执行——执行不了时，先判断“为什么” */
+function s3(){
+  const done=state.diagnosticDone;
+  const waiting=state.diagPending!==null && state.diagPending!==undefined;
+  main.innerHTML=`<section class="panel">
+    <div class="task-badge">阶段3 · 第一次盲执行</div>
+    <h2>小助手真的能照着做吗？</h2>
+    <p class="lead">先不要改说明。让执行者严格按文字理解：一旦它停下来，你先判断<b>为什么执行不了</b>，判断正确后再继续检查下一句。</p>
+    <div class="run-grid">
+      <div>
+        <h3>一份水果茶说明</h3>
+        <div class="run-list" id="diagList"></div>
+        <div class="run-controls">
+          <button class="btn primary" id="diagNext" ${done||waiting?'disabled':''}>${done?'检查完成':waiting?'先判断原因':'让小助手检查下一句'}</button>
+          <button class="btn ghost" id="diagRestart">从头再检查</button>
+        </div>
+      </div>
+      <div class="assistant-stage">
+        <div class="assistant-top"><div class="assistant-face">🤖</div><div class="bubble" id="diagBubble">我会严格按文字理解，不替作者补充没写出来的意思。</div></div>
+        <div class="note" id="diagFb" style="margin-top:12px">点击“检查下一句”，看看我会在哪里停下来。</div>
+        <div id="diagJudgeArea"></div>
+        <div class="memory-card" style="margin-top:14px"><h3>我已经发现的问题</h3><div id="issueList"></div></div>
+      </div>
+    </div>
+    <div id="diagDoneWrap"></div>
+  </section>`;
+  renderDiag();
+  document.getElementById('diagNext').onclick=diagNext;
+  document.getElementById('diagRestart').onclick=()=>{
+    state.diagIndex=0;state.diagSeen=[];state.diagnosticDone=false;
+    state.diagPending=null;state.diagSelected='';state.diagJudged=[];
+    state.diagJudgeFeedback='';state.diagJudgeFeedbackKind='';state.archive[2]=false;
+    save();s3();
+  };
+}
+function renderDiag(){
+  const list=document.getElementById('diagList');
+  list.innerHTML=DIAG.map((d,i)=>{
+    const seen=state.diagSeen.includes(i), pending=state.diagPending!==null&&state.diagPending!==undefined&&Number(state.diagPending)===i;
+    const judged=state.diagJudged.includes(i), current=!state.diagnosticDone&&!pending&&i===state.diagIndex;
+    let cls='';
+    if(d.ok&&seen) cls='done';
+    else if((!d.ok&&judged)||pending) cls='failed';
+    else if(current) cls='current';
+    return `<div class="run-line ${cls}"><strong>${i+1}</strong><span>${esc(d.text)}</span></div>`;
+  }).join('');
+
+  const confirmed=state.diagJudged.map(i=>({i,d:DIAG[i]})).filter(x=>x.d&&!x.d.ok);
+  document.getElementById('issueList').innerHTML=confirmed.length
+    ?confirmed.map((x,n)=>`<div class="timeline-item"><span class="n">${n+1}</span><span><span class="issue-type">${esc(x.d.type)}</span><br>${esc(x.d.ask)}</span></div>`).join('')
+    :'<div class="hint">判断正确的问题会记录在这里。</div>';
+
+  const bubble=document.getElementById('diagBubble'),fb=document.getElementById('diagFb'),judge=document.getElementById('diagJudgeArea');
+  judge.innerHTML='';
+
+  if(state.diagPending!==null && state.diagPending!==undefined){
+    const d=DIAG[state.diagPending];
+    bubble.innerHTML=`<b>我在第 ${state.diagPending+1} 句停下来了：</b><br>${esc(d.ask)}`;
+    fb.className='note bad';fb.innerHTML='<b>现在轮到你判断：</b>是什么原因让我无法继续执行？';
+    renderDiagJudge(state.diagPending);
+  }else if(state.diagJudgeFeedback){
+    fb.className='note '+(state.diagJudgeFeedbackKind||'');
+    fb.innerHTML=state.diagJudgeFeedback;
+    if(state.diagJudgeFeedbackKind==='good') bubble.textContent='你已经找到了我刚才卡住的原因，可以继续检查下一句。';
+  }else if(state.diagSeen.length){
+    const lastI=state.diagSeen[state.diagSeen.length-1],last=DIAG[lastI];
+    if(last.ok){bubble.textContent='这句话我能直接照着理解。';fb.className='note good';fb.textContent='这一句比较清楚，我不用追问。';}
+  }
+
+  if(state.diagnosticDone){
+    document.getElementById('diagDoneWrap').innerHTML=`<div class="concept" style="display:block;margin-top:16px"><h3>第一次盲执行告诉我们什么？</h3><p class="lead" style="margin-bottom:8px">小助手卡住的原因并不都一样：有时是关键步骤没写完整，有时是先后位置让人矛盾，有时是话本身说得不够明确。下一步进入“表达诊所”，专门练习怎样把这些问题改好。</p><div class="step-chain"><span class="chip">步骤完整</span><span class="chip">顺序清楚</span><span class="chip">表达明确</span></div><div class="editor-actions"><button class="btn primary" id="toClinic">进入表达诊所</button></div></div>`;
+    document.getElementById('toClinic').onclick=()=>setStage(4);
+  }
+}
+function renderDiagJudge(i){
+  const area=document.getElementById('diagJudgeArea');
+  if(!area)return;
+  const choices=['步骤不完整','顺序不清楚','表达不明确'];
+  area.innerHTML=`<div class="diag-judge">
+    <h4>你觉得，是什么原因让小助手停下来了？</h4>
+    <div class="diag-choices">${choices.map(c=>`<button class="diag-choice ${state.diagSelected===c?'sel':''}" data-reason="${c}">${c}</button>`).join('')}</div>
+    <div class="diag-submit"><button class="btn secondary" id="diagSubmit" ${state.diagSelected?'':'disabled'}>提交判断</button></div>
+    <div id="diagJudgeFb" class="${state.diagJudgeFeedback?'note '+(state.diagJudgeFeedbackKind||''):'hint'}" style="margin-top:10px">${state.diagJudgeFeedback||'先选择一种原因，再提交判断。'}</div>
+  </div>`;
+  area.querySelectorAll('[data-reason]').forEach(b=>b.onclick=()=>{
+    state.diagSelected=b.dataset.reason;state.diagJudgeFeedback='';state.diagJudgeFeedbackKind='';save();renderDiag();
+  });
+  document.getElementById('diagSubmit').onclick=submitDiagJudge;
+}
+function submitDiagJudge(){
+  if(state.diagPending===null||state.diagPending===undefined||!state.diagSelected)return;
+  const i=Number(state.diagPending),d=DIAG[i];
+  if(state.diagSelected===d.type){
+    if(!state.diagJudged.includes(i))state.diagJudged.push(i);
+    state.diagJudgeFeedback=`<b>✓ 你判断对了。</b> ${esc(diagReasonExplain(d.type,d))}`;
+    state.diagJudgeFeedbackKind='good';
+    state.diagPending=null;state.diagSelected='';state.diagIndex=i+1;
+    if(state.diagIndex>=DIAG.length){state.diagnosticDone=true;state.archive[2]=true;}
+    save();s3();
+  }else{
+    state.diagJudgeFeedback=`<b>再想一想。</b> ${esc(d.hint||'重新读一读小助手的问题，再判断它究竟卡在哪里。')}`;
+    state.diagJudgeFeedbackKind='bad';
+    save();renderDiag();
+  }
+}
+function diagReasonExplain(type,d){
+  if(type==='表达不明确')return '这句话虽然提到了动作，但执行者不知道具体该怎么做，或不知道做到什么程度。';
+  if(type==='步骤不完整')return '关键动作没有完整写出来，执行者无法从当前状态顺利走到下一步。';
+  if(type==='顺序不清楚')return '动作本身可能写到了，但出现的位置前后矛盾，执行者不知道究竟应该先做哪一步。';
+  return d.ask||'你找到了执行者卡住的真正原因。';
+}
+function diagNext(){
+  if(state.diagnosticDone||state.diagPending!==null&&state.diagPending!==undefined)return;
+  const i=state.diagIndex;
+  if(i>=DIAG.length)return;
+  state.diagJudgeFeedback='';state.diagJudgeFeedbackKind='';state.diagSelected='';
+  if(!state.diagSeen.includes(i))state.diagSeen.push(i);
+  const d=DIAG[i];
+  if(d.ok){
+    state.diagIndex=i+1;
+    if(state.diagIndex>=DIAG.length){state.diagnosticDone=true;state.archive[2]=true;}
+  }else{
+    state.diagPending=i;
+  }
+  save();s3();
+}
+
+/* Stage 4：表达诊所——先选，再检查；未选择前绝不显示答案颜色 */
+function s4(){
+  main.innerHTML=`<section class="panel">
+    <div class="task-badge">阶段4 · 表达诊所</div>
+    <h2>小助手为什么会追问？练习判断“怎样说更清楚”</h2>
+    <p class="lead">先自己选择，再点击“检查我的选择”。在你检查之前，页面不会用绿色或红色告诉你答案。</p>
+    <div class="clinic-grid" id="clinicGrid"></div>
+    <div class="note" id="clinicFb" style="margin-top:12px">完成3张诊所卡。选错不会直接显示正确答案，你可以根据提示重新比较。</div>
+    <div id="clinicNext"></div>
+  </section>`;
+  renderClinic();
+}
+function renderClinic(){
+  const box=document.getElementById('clinicGrid');box.innerHTML='';
+  CLINIC.forEach(c=>{
+    const sel=Array.isArray(state.clinic[c.id])?state.clinic[c.id]:[];
+    const checked=!!state.clinicChecked[c.id],passed=!!state.clinicPassed[c.id];
+    const d=document.createElement('div');d.className='clinic-card';
+    d.innerHTML=`<h3>${c.q}</h3><div class="clinic-bad">原说明：${esc(c.bad)}</div>
+      <div class="clinic-options">${c.opts.map((o,i)=>`<button class="clinic-opt ${sel.includes(i)?'sel':''}" data-i="${i}">${esc(o)}</button>`).join('')}</div>
+      <div class="editor-actions"><button class="btn secondary" data-check ${sel.length?'':'disabled'}>检查我的选择</button></div>
+      <div class="${checked?(passed?'note good':'note bad'):'hint'}" data-result style="margin-top:10px">${checked?(passed?esc(c.good):esc(c.badfb)):'先选择，再检查。'}</div>`;
+    d.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{
+      const i=Number(b.dataset.i);let cur=Array.isArray(state.clinic[c.id])?state.clinic[c.id].slice():[];
+      if(c.ans.length===1)cur=[i];else cur=cur.includes(i)?cur.filter(x=>x!==i):[...cur,i];
+      state.clinic[c.id]=cur;state.clinicChecked[c.id]=false;state.clinicPassed[c.id]=false;save();renderClinic();
+    });
+    d.querySelector('[data-check]').onclick=()=>checkClinic(c);
+    box.appendChild(d);
+  });
+  const all=CLINIC.every(c=>state.clinicPassed[c.id]);
+  if(all){
+    state.clinicDone=true;state.archive[3]=true;save();
+    document.getElementById('clinicFb').className='note good';
+    document.getElementById('clinicFb').innerHTML='<b>表达诊所完成。</b> 你已经练习了怎样从“执行者能不能照着做”的角度判断一句话。现在轮到你重新把整套水果茶算法说清楚。';
+    document.getElementById('clinicNext').innerHTML='<div class="editor-actions"><button class="btn primary" id="toEditor">下一步：重新把动作说清楚</button></div>';
+    document.getElementById('toEditor').onclick=()=>setStage(5);
+  }
+}
+function checkClinic(c){
+  const sel=(state.clinic[c.id]||[]).slice().sort((a,b)=>a-b);
+  const ans=c.ans.slice().sort((a,b)=>a-b);
+  state.clinicChecked[c.id]=true;
+  state.clinicPassed[c.id]=sel.length===ans.length&&sel.every((x,i)=>x===ans[i]);
+  save();renderClinic();
+}
+
+/* Stage 5：把动作说清楚——在诊所之后应用刚学到的判断 */
+function s5(){
+  main.innerHTML=`<section class="panel">
+    <div class="task-badge">阶段5 · 把动作说清楚</div>
+    <h2>现在轮到你：把6个动作重新说成别人能照着做的句子</h2>
+    <p class="lead">回想第一次盲执行的问题和表达诊所的练习。每一步可以从几种说法中选择，也可以自己写。页面不会提前标出哪一句是“标准答案”。</p>
+    <div class="editor-list" id="editorList"></div>
+    <div class="editor-actions"><button class="btn secondary" id="backClinic">返回表达诊所</button><button class="btn primary" id="startBlind">▶ 用我的新说明重新完成整个算法</button></div>
+    <div class="note" id="editorFb" style="margin-top:12px">写完6步后，再交给小助手从头盲执行。真正能不能说清楚，要靠执行来验证。</div>
+  </section>`;
+  renderEditor();
+  document.getElementById('backClinic').onclick=()=>setStage(4);
+  document.getElementById('startBlind').onclick=()=>{
+    const missing=state.reviewOrder.filter(k=>!state.sentences[k].trim());
+    if(missing.length){const fb=document.getElementById('editorFb');fb.className='note bad';fb.textContent='还有步骤没有写成句子。请先把6步都表达出来。';return}
+    if(!state.firstDraft)state.firstDraft={order:state.reviewOrder.slice(),sentences:{...state.sentences}};
+    state.archive[4]=true;save();startFinalBlind();
+  };
+}
+function renderEditor(){
+  const box=document.getElementById('editorList');box.innerHTML='';
+  state.reviewOrder.forEach((k,i)=>{
+    const d=document.createElement('div');d.className='edit-card '+(state.lastFailKey===k?'highlight':'');const opts=OPTIONS[k];
+    d.innerHTML=`<div class="edit-head"><div class="left"><span class="num">${i+1}</span><span class="base-tag">动作：${META[k].label}</span></div></div>
+      <div class="choices">${opts.map((o,j)=>`<button class="choice ${state.sentences[k]===o.text?'sel':''}" data-opt="${j}">${esc(o.text)}</button>`).join('')}</div>
+      <div class="custom-row"><input type="text" value="${esc(!opts.some(o=>o.text===state.sentences[k])?state.sentences[k]:'')}" placeholder="也可以自己写一句"><button class="mini" data-custom>采用我的表达</button></div>
+      <div class="prediction-row"><span class="hint">我预测小助手：</span><button class="pred-btn ${state.pred[k]==='yes'?'sel':''}" data-pred="yes">✓ 能听懂</button><button class="pred-btn ${state.pred[k]==='maybe'?'sel':''}" data-pred="maybe">？可能会追问</button></div>
+      <div class="final-sentence ${state.sentences[k]?'':'empty'}">${state.sentences[k]?`当前写法：${esc(state.sentences[k])}`:'当前还没有写这一步。'}</div>`;
+    d.querySelectorAll('[data-opt]').forEach(b=>b.onclick=()=>{state.sentences[k]=opts[Number(b.dataset.opt)].text;save();renderEditor()});
+    d.querySelector('[data-custom]').onclick=()=>{const v=d.querySelector('input').value.trim();state.sentences[k]=v;save();renderEditor()};
+    d.querySelectorAll('[data-pred]').forEach(b=>b.onclick=()=>{state.pred[k]=b.dataset.pred;save();renderEditor()});
+    box.appendChild(d);
+  });
+  state.lastFailKey='';
+}
+
+/* Stage 6：重新盲执行——这一次验证学生自己的新说明 */
+function buildBlind(){blind={order:state.reviewOrder.slice(),sentences:{...state.sentences},index:0,done:[],failed:null,sim:{clean:false,slice:false,put:false,water:false,soak:false,finish:false}}}
+function startFinalBlind(){buildBlind();state.runCount++;save();setStage(6)}
+function s6(){
+  if(!blind)buildBlind();
+  main.innerHTML=`<section class="panel">
+    <div class="task-badge">阶段6 · 重新盲执行</div>
+    <h2>再验证一次：我的新说明能不能让小助手从头做到尾？</h2>
+    <p class="lead">这一次执行的是你刚刚重新写好的6句话。哪里卡住，就回去改哪里；修改以后必须从头再验证。</p>
+    <div class="run-grid"><div><h3>我的自然语言算法</h3><div class="run-list" id="runList"></div><div class="run-controls"><button class="btn primary" id="nextRun">执行下一句话</button><button class="btn secondary" id="autoRun">连续执行</button><button class="btn ghost" id="restartRun">从头再来</button></div></div>
+      <div class="assistant-stage"><div class="assistant-top"><div class="assistant-face">🤖</div><div class="bubble" id="bubble">我准备好了。这一次，我只按你写的新说明执行。</div></div><div class="mini-workbench"><div class="mini-zone">水果<strong id="miniFruit">完整、未清洗</strong></div><div class="mini-zone"><div class="mini-cup"><div class="mini-water" id="miniWater"></div><div class="mini-fruit" id="miniFruitCup"></div></div><strong>玻璃杯</strong></div><div class="mini-zone">浸泡<strong id="miniSoak">未开始</strong></div></div><div class="state-grid" id="blindStates"></div><div class="note" id="runFb" style="margin-top:12px">从第1句话开始验证。</div></div></div>
+  </section>`;
+  renderBlind();
+  document.getElementById('nextRun').onclick=blindNext;
+  document.getElementById('autoRun').onclick=autoRun;
+  document.getElementById('restartRun').onclick=()=>{buildBlind();renderStage()};
+}
+function renderBlind(){
+  const list=document.getElementById('runList');list.innerHTML='';
+  blind.order.forEach((k,i)=>{const d=document.createElement('div');d.className='run-line '+(blind.done.includes(i)?'done':blind.failed&&blind.failed.i===i?'failed':i===blind.index?'current':'');d.innerHTML=`<strong>${i+1}</strong><span>${esc(blind.sentences[k])}</span>`;list.appendChild(d)});
+  const s=blind.sim;document.getElementById('miniFruit').textContent=s.slice?'已清洗、已切片':s.clean?'已清洗、完整':'完整、未清洗';document.getElementById('miniWater').style.height=s.water?'72%':'0';document.getElementById('miniFruitCup').innerHTML=s.put?sliceMarkup('cup'):'';document.getElementById('miniSoak').textContent=s.soak?'已完成':'未开始';
+  document.getElementById('blindStates').innerHTML=[['清洗',s.clean],['切片',s.slice],['入杯',s.put],['加水',s.water],['浸泡',s.soak],['完成',s.finish]].map(x=>`<div class="state-item"><small>${x[0]}</small><strong>${x[1]?'✓ 已完成':'— 未完成'}</strong></div>`).join('');
+  const b=document.getElementById('nextRun');b.disabled=!!blind.failed||s.finish;document.getElementById('autoRun').disabled=!!blind.failed||s.finish;
+  if(blind.failed){
+    document.getElementById('bubble').innerHTML=`<b>我又卡住了：</b>${esc(blind.failed.ask)}`;
+    const fb=document.getElementById('runFb');fb.className='note bad';fb.innerHTML=`问题类型：<b>${blind.failed.type}</b><br>${esc(blind.failed.ask)}<div class="run-controls"><button class="btn primary" id="repairBtn">回去修改这句话</button></div>`;
+    document.getElementById('repairBtn').onclick=()=>{state.lastFailKey=blind.failed.key;state.repairCount++;save();setStage(5)};
+  }else if(s.finish){
+    document.getElementById('bubble').innerHTML='我已经完全按照你的新说明，从头到尾完成了水果茶。';
+    const fb=document.getElementById('runFb');fb.className='note good';fb.innerHTML='<b>重新验证通过！</b> 这一次执行者不需要替你猜，也不需要停下来追问。';
+    if(!state.archive[5]){state.archive[5]=true;save();setTimeout(()=>setStage(7),900)}
+  }
+}
+function classify(k,text){
+  const t=(text||'').trim();if(!t)return{ok:false,type:'步骤不完整',ask:`这里没有写“${META[k].label}”这一步，我不知道该做什么。`};
+  const vague=/(处理一下|弄成小块|放进去|加点|一点水|泡一会儿|差不多|弄好了|适量|若干)/;
+  if(vague.test(t))return{ok:false,type:'表达不明确',ask:`“${t}”里还有需要我猜的地方。请告诉我“具体做什么、做到什么程度”。`};
+  const must={clean:/洗|清洗/,slice:/切/,put:/杯|放入|放进/,water:/水/,soak:/泡|浸|静置/,finish:/完成|饮用|做好/};
+  if(!must[k].test(t))return{ok:false,type:'表达不明确',ask:`我读到“${t}”，但还不能确定它是不是在告诉我“${META[k].label}”。`};
+  return{ok:true};
+}
+function orderOk(k,s){if(k==='clean')return{ok:true};if(k==='slice'&&!s.clean)return{ok:false,ask:'水果还没有清洗，现在就切吗？请检查前后顺序。'};if(k==='put'&&!s.slice)return{ok:false,ask:'水果还没有切片，现在就放入杯中吗？'};if(k==='water'&&!s.put)return{ok:false,ask:'你的说明让我现在加水，但杯中还没有水果。请检查顺序。'};if(k==='soak'&&(!s.put||!s.water))return{ok:false,ask:'浸泡前，杯中需要同时有水果和水。'};if(k==='finish'&&!s.soak)return{ok:false,ask:'还没有完成浸泡，现在就宣布完成了吗？'};return{ok:true}}
+function blindNext(){if(blind.failed||blind.index>=blind.order.length)return;const i=blind.index,k=blind.order[i],text=blind.sentences[k];const c=classify(k,text);if(!c.ok){blind.failed={i,key:k,type:c.type,ask:c.ask};state.questionCount++;save();renderBlind();return}const o=orderOk(k,blind.sim);if(!o.ok){blind.failed={i,key:k,type:'顺序不清楚',ask:o.ask};state.questionCount++;save();renderBlind();return}blind.sim[k]=true;blind.done.push(i);blind.index++;document.getElementById('bubble').textContent=`我听懂了：“${text}”`;renderBlind()}
+function autoRun(){if(blind.failed||blind.sim.finish)return;blindNext();if(!blind.failed&&!blind.sim.finish)setTimeout(autoRun,500)}
+function draftHtml(order,sentences,base){return order.map((k,i)=>`<div class="algo-line ${base&&base[k]!==sentences[k]?'diff':''}"><b>${i+1}.</b> ${esc(sentences[k]||'（未写）')}</div>`).join('')}
+
+/* Stage 7：形成算法2.0 */
+function s7(){
+  const parts=['步骤完整','顺序清楚','表达明确','别人只看文字也能做'];
+  const reflection=state.reflection.length?`我发现：自然语言描述算法时，要做到${state.reflection.map(x=>'“'+x+'”').join('、')}。`:'点击关键词，组成你今天的发现。';
+  const diagProblems=state.diagSeen.filter(i=>!DIAG[i].ok).length;
+  main.innerHTML=`<section class="panel print-panel"><div class="task-badge no-print">阶段7 · 形成算法2.0</div><h2 class="no-print">把“会做”真正变成“别人只看文字也能做”</h2><div class="summary-card">
+    <div class="summary-head"><div><div class="eyebrow">第一单元 · 阶段成果</div><h2>《水果茶算法2.0——自然语言版》</h2></div><div class="version">版本 2.0</div></div>
+    <div class="summary-section"><h3>算法1.0：步骤骨架</h3>${chain(state.reviewOrder)}</div>
+    <div class="summary-section"><h3>第一次盲执行发现</h3><div class="reflection">小助手在粗略说明中记录了 ${diagProblems} 处需要追问的问题。我先进入“表达诊所”练习判断，再重新写完整算法。</div></div>
+    ${state.firstDraft?`<div class="summary-section"><h3>我重新写出的第一版说明</h3>${draftHtml(state.firstDraft.order,state.firstDraft.sentences)}</div>`:''}
+    <div class="summary-section"><h3>我的自然语言算法2.0</h3>${draftHtml(state.reviewOrder,state.sentences,state.firstDraft?state.firstDraft.sentences:null)}</div>
+    <div class="summary-section"><h3>我的重新验证记录</h3><div class="reflection">重新盲执行 ${state.runCount} 次；小助手累计提出 ${state.questionCount} 个问题；我根据问题定位修改 ${state.repairCount} 次；最终从头到尾执行通过。</div></div>
+    <div class="summary-section"><h3>三项出厂检查</h3><div class="step-chain"><span class="chip">✓ 步骤完整</span><span class="chip">✓ 顺序清楚</span><span class="chip">✓ 表达明确</span></div></div>
+    <div class="summary-section no-print"><h3>把今天的发现组成一句话</h3><div class="phrase-builder">${parts.map(p=>`<button class="phrase-btn ${state.reflection.includes(p)?'sel':''}" data-p="${p}">${p}</button>`).join('')}</div><div class="reflection" id="reflectionText" style="margin-top:10px">${reflection}</div></div>
+    <div class="summary-section"><h3>下一课</h3><div class="reflection">这份文字算法已经能被执行。下一课，我们把同一个算法换成流程图表示，让过程“一眼就能看清”。</div></div>
+    <div class="summary-actions no-print"><button class="btn primary" id="printBtn">打印 / 保存为PDF</button><button class="btn secondary" id="backEditor">回看我的表达</button><button class="btn ghost" id="backClinic">回看表达诊所</button></div>
+  </div></section>`;
+  document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const p=b.dataset.p,i=state.reflection.indexOf(p);if(i>=0)state.reflection.splice(i,1);else state.reflection.push(p);state.completed=true;save();s7()});
+  document.getElementById('printBtn').onclick=()=>window.print();document.getElementById('backEditor').onclick=()=>setStage(5);document.getElementById('backClinic').onclick=()=>setStage(4);
+}
+
+/* Teacher */
+const modal=document.getElementById('teacherModal');
+document.getElementById('teacherBtn').onclick=()=>modal.classList.add('show');
+document.getElementById('closeTeacher').onclick=()=>modal.classList.remove('show');
+modal.onclick=e=>{if(e.target===modal)modal.classList.remove('show')};
+const jump=document.getElementById('jumpGrid');
+STAGES.forEach((s,i)=>{const b=document.createElement('button');b.className='mini';b.textContent=`${i+1}. ${s}`;b.onclick=()=>{modal.classList.remove('show');teacherJump(i+1)};jump.appendChild(b)});
+document.getElementById('resetBtn').onclick=()=>{if(!confirm('重置本课学习过程？'))return;state=fresh();work=null;blind=null;save();modal.classList.remove('show');renderAll()};
+function teacherJump(n){
+  if(n>=2){state.archive[0]=true;state.actionSuccess=true;state.actionLog=DEFAULT_ORDER.map(k=>({text:META[k].label,ok:true}))}
+  if(n>=3){state.archive[1]=true;state.reviewOrder=DEFAULT_ORDER.slice()}
+  if(n>=4){state.archive[2]=true;state.diagIndex=DIAG.length;state.diagSeen=DIAG.map((_,i)=>i);state.diagnosticDone=true}
+  if(n>=5){state.archive[3]=true;state.clinic={c1:[1],c2:[0,1],c3:[0]};state.clinicChecked={c1:true,c2:true,c3:true};state.clinicPassed={c1:true,c2:true,c3:true};state.clinicDone=true}
+  if(n>=6){state.archive[4]=true;DEFAULT_ORDER.forEach(k=>{if(!state.sentences[k])state.sentences[k]=OPTIONS[k].find(o=>o.ok).text});state.firstDraft=state.firstDraft||{order:DEFAULT_ORDER.slice(),sentences:{...state.sentences}};blind=null}
+  if(n>=7){state.archive[5]=true;state.runCount=Math.max(1,state.runCount)}
+  state.stage=n;save();renderAll();
+}
+renderAll();
+})();
+</script>
+</body>
+</html>
